@@ -15,6 +15,17 @@ class EditorInitializer {
       minimap: { enabled: true },
     });
 
+    editor.addCommand(
+      monaco.KeyMod.Alt | monaco.KeyCode.Space,
+      () => {
+        editor.trigger('', 'editor.action.triggerSuggest', '');
+      },
+      'editorTextFocus && !editorHasSelection && ' +
+      '!editorHasMultipleSelections && !editorTabMovesFocus && ' +
+      '!hasQuickSuggest'
+    );
+    
+
     this.monaco.editor.defineTheme('customTheme', this.theme);
     this.monaco.editor.setTheme('customTheme');
 
