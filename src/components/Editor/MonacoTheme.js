@@ -1,4 +1,4 @@
-export const MonacoTheme = {
+const MonacoTheme = {
   base: 'vs-dark',
   inherit: true,
   rules: [
@@ -26,3 +26,5 @@ export const MonacoTheme = {
     'editorGutter.deletedBackground': '#f44747',
   },
 };
+
+export default MonacoTheme;

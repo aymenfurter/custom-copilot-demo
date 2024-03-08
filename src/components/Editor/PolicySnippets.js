@@ -1,5 +1,3 @@
-// ./src/components/Editor/PolicySnippets.js
-
 const policySnippets = [
   {
     label: 'validate-azure-ad-token',

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Message from './Message'; // Import the Message component
+import Message from './Message';
 import './ChatBox.css';
 
-const ChatBox = () => {
-  const [messages, setMessages] = useState([]);
+const ChatBox = ({ onMessageSent, messages }) => {
   const [currentInput, setCurrentInput] = useState('');
 
   const handleInputChange = (e) => {
@@ -14,16 +13,8 @@ const ChatBox = () => {
     if (currentInput.trim() === '') {
       return;
     }
-    setMessages([...messages, { type: 'user', text: currentInput }]);
+    onMessageSent(currentInput);
     setCurrentInput('');
-
-    // Simulate a bot response
-    setTimeout(() => {
-      setMessages((msgs) => [
-        ...msgs,
-        { type: 'bot', text: 'This is a simulated response.' },
-      ]);
-    }, 1000);
   };
 
   useEffect(() => {
@@ -37,7 +28,7 @@ const ChatBox = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [currentInput, messages]);
+  }, [currentInput]);
 
   return (
     <div className="chat-box">

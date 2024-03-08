@@ -58,3 +58,17 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.inline-suggestion {
+  display: inline-block;
+  background-color: rgba(128, 128, 128, 0.2);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.after-suggestion {
+  display: inline-block;
+  color: grey;
+  font-style: italic;
+  padding-left: 2px;
+}
