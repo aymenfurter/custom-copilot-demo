@@ -15,7 +15,8 @@ class XmlValidator {
     ];
 
     this._setModelMarkers(errors);
-    this._decorateEditor(errors);
+
+    return errors;
   }
 
   _parseXml() {
@@ -58,24 +59,6 @@ class XmlValidator {
 
   _setModelMarkers(errors) {
     this.monaco.editor.setModelMarkers(this.editor.getModel(), 'xml', errors);
-  }
-
-  _decorateEditor(errors) {
-    errors.forEach(error => {
-      const range = new this.monaco.Range(error.startLineNumber, error.startColumn, error.endLineNumber, error.endColumn);
-      this.editor.deltaDecorations([], [{
-        range,
-        options: this._getErrorDecorationOptions(error),
-      }]);
-    });
-  }
-
-  _getErrorDecorationOptions(error) {
-    return {
-      isWholeLine: false,
-      glyphMarginClassName: 'error-glyph',
-      glyphMarginHoverMessage: { value: error.message },
-    };
   }
 }
 

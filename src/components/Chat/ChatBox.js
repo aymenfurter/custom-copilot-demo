@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Message from './Message';
 import './ChatBox.css';
 
-const ChatBox = ({ onMessageSent, messages }) => {
+const ChatBox = ({ onMessageSent, messages, hasErrors, onClearChat }) => {
   const [currentInput, setCurrentInput] = useState('');
 
   const isInputEmpty = useCallback(() => currentInput.trim() === '', [currentInput]);
@@ -19,12 +19,16 @@ const ChatBox = ({ onMessageSent, messages }) => {
     navigator.clipboard.writeText(code);
   }, []);
 
+  const handleProposeFixClick = () => {
+    onMessageSent("Help me review the code for any syntax errors.");
+  };
+
   return (
     <div className="chat-box">
       <div className="messages">
         {messages.map((message, index) => (
           <Message
-            key={`${message.id}-${index}`} // Ideally, use a unique ID instead of index
+            key={`${message.id}-${index}`}
             text={message.text}
             type={message.type}
             onCodeCopy={handleCodeCopy}
@@ -38,6 +42,14 @@ const ChatBox = ({ onMessageSent, messages }) => {
           onChange={handleInputChange}
           placeholder="Type a message..."
         />
+        <button type="button" className="clear-chat-button" onClick={onClearChat}>
+          🗑️
+        </button>
+        {hasErrors && (
+          <button type="button" className="propose-fix-button" onClick={handleProposeFixClick}>
+            ✨ Propose Fix
+          </button>
+        )}
         <button type="submit" onClick={sendMessage}>Send</button>
       </form>
     </div>

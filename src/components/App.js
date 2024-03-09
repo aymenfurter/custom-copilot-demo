@@ -10,9 +10,13 @@ const App = () => {
   const [apiKey, setApiKey] = useState(localStorage.getItem('apiKey') || '');
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [hasErrors, setHasErrors] = useState(false);
   const editorRef = useRef(null);
 
-  // Initialize and set up the editor
+  const handleClearChat = () => {
+    setMessages([]);
+  };
+
   useEffect(() => {
     if (!editorRef.current) return;
 
@@ -29,7 +33,8 @@ const App = () => {
 
     const handleEditorChange = () => {
       const validator = new XmlValidator(editorInstance, monaco);
-      validator.validate();
+      const errors = validator.validate();
+      setHasErrors(errors.length > 0);
       localStorage.setItem('editorContent', editorInstance.getValue());
     };
 
@@ -42,7 +47,7 @@ const App = () => {
       editorInstance.dispose();
       codeSuggester.dispose();
     };
-  }, [apiKey]); 
+  }, [apiKey]);
 
   const handleApiKeyChange = (event) => {
     setApiKey(event.target.value);
@@ -56,6 +61,7 @@ const App = () => {
   const handleMessageSent = async (message) => {
     setMessages((prevMessages) => [...prevMessages, { type: 'user', text: message }]);
     setIsStreaming(true);
+    setHasErrors(false);
     const currentModel = monaco.editor.getModels()[0];
     const currentCode = currentModel.getValue();
 
@@ -120,7 +126,6 @@ const App = () => {
       }
     }
 
-
     setIsStreaming(false);
   };
 
@@ -143,7 +148,13 @@ const App = () => {
           <div ref={editorRef} className="monaco-editor" style={{ height: '100%', width: '100%' }} />
         </div>
         <div className="chat">
-          <ChatBox onMessageSent={handleMessageSent} messages={messages} isStreaming={isStreaming} />
+          <ChatBox
+            onMessageSent={handleMessageSent}
+            messages={messages}
+            isStreaming={isStreaming}
+            hasErrors={hasErrors}
+            onClearChat={handleClearChat}
+          />
         </div>
       </div>
     </div>
