@@ -81,6 +81,34 @@ class CodeSuggester {
       - Use appropriate variable names, function names, and coding conventions based on the surrounding code.
       - Consider the context and purpose of the code snippet to provide meaningful suggestions.
       - If the prompt is ambiguous or lacks sufficient context, provide a best-effort suggestion or indicate that more information is needed.
+      
+      API Management policy (XML) may contain the following policies:
+        - authentication-basic - [username, password]
+        - authentication-certificate - [thumbprint, certificate-id]
+        - cache-lookup - [vary-by-developer, vary-by-developer-groups, downstream-caching-type], {vary-by-header: [], vary-by-query-parameter: []}
+        - cache-store - [duration]
+        - check-header - [name, failed-check-httpcode, failed-check-error-message], {value: []}
+        - choose - [], {when: [condition], otherwise: []}
+        - cors - [allow-credentials], {allowed-origins: [], origin: [], allowed-methods: [], method: [], allowed-headers: [], header: [], expose-headers: []}
+        - ip-filter - [action], {address: []}
+        - json-to-xml - [apply, consider-accept-header], {'output-xml-encoding': []}
+        - quota - [calls, bandwidth, renewal-period], {api: [name]}
+        - rate-limit - [calls, renewal-period], {api: [name]}
+        - retry - [condition, count, interval, delta, max-interval, first-fast-retry]
+        - return-response - [], {status: [code, reason], headers: [], header: [name, exists-action], value: [], body: []}
+        - send-request - [mode, response-variable-name], {url: [], method: [], headers: [], header: [name, exists-action], value: [], body: []}
+        - set-body - []
+        - set-header - [name, exists-action], {value: []}
+        - set-query-parameter - [name, exists-action], {value: []}
+        - validate-content - [unspecified-content-type-action], {content: [type, validate-as, schema-id]}
+        - validate-jwt - [header-name, failed-validation-httpcode, failed-validation-error-message], {openid-config: [url], required-claims: [], claim: [name, match], value: []}
+        - validate-parameters - [specified-parameter-action, unspecified-parameter-action], {headers: [specified-parameter-action, unspecified-parameter-action], query: [specified-parameter-action, unspecified-parameter-action]}
+        - rewrite-uri - [template]
+        - mock-response - [status-code, content-type], {headers: [], header: [name, exists-action], value: [], body: []}
+        - xml-to-json - [kind]
+        - find-and-replace - [from, to]
+        - set-variable - [name, value]
+
     `;
   }
 
