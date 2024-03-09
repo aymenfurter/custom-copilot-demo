@@ -30,11 +30,22 @@ const ChatBox = ({ onMessageSent, messages }) => {
     };
   }, [currentInput]);
 
+
+  const handleCodeCopy = (code) => {
+    navigator.clipboard.writeText(code);
+  };
+
+
   return (
     <div className="chat-box">
       <div className="messages">
         {messages.map((message, index) => (
-          <Message key={index} text={message.text} type={message.type} />
+          <Message
+            key={index}
+            text={message.text}
+            type={message.type}
+            onCodeCopy={handleCodeCopy}
+          />
         ))}
       </div>
       <div className="input-area">
