@@ -1,45 +1,61 @@
 export const generateCodeSuggestion = async (prompt, context, apiKey) => {
+  const apiURL = 'https://api.openai.com/v1/chat/completions';
+  const requestHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+  };
+  const requestBody = createRequestBody(prompt, context);
+
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant that provides code suggestions.',
-          },
-          {
-            role: 'user',
-            content: `Generate code suggestion for the following prompt:\n\n${prompt}\n\nContext:\n${context}`,
-          },
-        ],
-        max_tokens: 100,
-        n: 1,
-        stop: null,
-        temperature: 0.7,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      console.error('Error generating code suggestion:', data.error);
-      return null;
-    }
-
-    if (data.choices && data.choices.length > 0) {
-      return data.choices[0].message.content.trim();
-    } else {
-      console.error('Unexpected response format:', data);
-      return null;
-    }
+    const response = await postRequest(apiURL, requestHeaders, requestBody);
+    return handleResponse(response);
   } catch (error) {
     console.error('Error generating code suggestion:', error);
     return null;
   }
+};
+
+const createRequestBody = (prompt, context) => {
+  return JSON.stringify({
+    model: 'gpt-4',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful assistant that provides code suggestions.',
+      },
+      {
+        role: 'user',
+        content: formatPrompt(prompt, context),
+      },
+    ],
+    max_tokens: 100,
+    n: 1,
+    stop: null,
+    temperature: 0.7,
+  });
+};
+
+const formatPrompt = (prompt, context) => {
+  return `Generate code suggestion for the following prompt:\n\n${prompt}\n\nContext:\n${context}`;
+};
+
+const postRequest = async (url, headers, body) => {
+  return fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: body,
+  });
+};
+
+const handleResponse = async (response) => {
+  const data = await response.json();
+
+  if (data.error) {
+    console.error('Error generating code suggestion:', data.error);
+    return null;
+  }
+
+  return data.choices && data.choices.length > 0
+    ? data.choices[0].message.content.trim()
+    : null;
 };

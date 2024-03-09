@@ -9,71 +9,73 @@ class XmlValidator {
   }
 
   validate() {
-    const value = this.editor.getValue();
-    const xmlDoc = new DOMParser().parseFromString(value, 'text/xml');
+    const xmlDoc = this._parseXml();
+    const errors = [
+      ...this._validatePolicyAttributes(xmlDoc),
+    ];
+
+    this._setModelMarkers(errors);
+    this._decorateEditor(errors);
+  }
+
+  _parseXml() {
+    const xmlString = this.editor.getValue();
+    return new DOMParser().parseFromString(xmlString, 'text/xml');
+  }
+
+  _validatePolicyAttributes(xmlDoc) {
     const errors = [];
 
-    // Check if the expected structure is present
-    const requiredElements = ['inbound', 'backend', 'outbound', 'on-error'];
-    requiredElements.forEach(element => {
-      if (!xmlDoc.querySelector(`policies > ${element}`)) {
-        errors.push({
-          severity: this.monaco.MarkerSeverity.Error,
-          message: `Missing required element: <${element}>`,
-          startLineNumber: 1,
-          startColumn: 1,
-          endLineNumber: 1,
-          endColumn: 1,
-        });
-      }
-    });
-
-    // Check for unknown attributes in policy snippets
     policySnippets.forEach(snippet => {
       const elements = xmlDoc.getElementsByTagName(snippet.label);
-      for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
+      Array.from(elements).forEach(element => {
         const allowedAttributes = snippet.attributes || [];
-        for (let j = 0; j < element.attributes.length; j++) {
-          const attribute = element.attributes[j];
+        Array.from(element.attributes).forEach(attribute => {
           if (!allowedAttributes.includes(attribute.name)) {
-            const lineNumber = this.positionCalculator.getLineNumber(value, element);
-            const startColumn = this.positionCalculator.getColumnNumber(value, element, attribute.name);
-            errors.push({
-              severity: this.monaco.MarkerSeverity.Error,
-              message: `Unknown attribute: ${attribute.name}`,
-              startLineNumber: lineNumber,
-              startColumn: startColumn,
-              endLineNumber: lineNumber,
-              endColumn: startColumn + attribute.name.length,
-            });
+            errors.push(this._createAttributeError(element, attribute));
           }
-        }
-      }
+        });
+      });
     });
 
-    // Set the markers for errors
+    return errors;
+  }
+
+  _createAttributeError(element, attribute) {
+    const xmlString = this.editor.getValue();
+    const lineNumber = this.positionCalculator.getLineNumber(xmlString, element);
+    const startColumn = this.positionCalculator.getColumnNumber(xmlString, element, attribute.name);
+
+    return {
+      severity: this.monaco.MarkerSeverity.Error,
+      message: `Unknown attribute: ${attribute.name}`,
+      startLineNumber: lineNumber,
+      startColumn: startColumn,
+      endLineNumber: lineNumber,
+      endColumn: startColumn + attribute.name.length,
+    };
+  }
+
+  _setModelMarkers(errors) {
     this.monaco.editor.setModelMarkers(this.editor.getModel(), 'xml', errors);
+  }
 
-    // Display error details in the editor's gutter
+  _decorateEditor(errors) {
     errors.forEach(error => {
-      const startPosition = new this.monaco.Position(error.startLineNumber, error.startColumn);
-      const endPosition = new this.monaco.Position(error.endLineNumber, error.endColumn);
-      const range = new this.monaco.Range(startPosition.lineNumber, startPosition.column, endPosition.lineNumber, endPosition.column);
-      this.editor.deltaDecorations([], [
-        {
-          range,
-          options: {
-            isWholeLine: false,
-            className: 'error-marker',
-            glyphMarginClassName: 'error-glyph',
-            glyphMarginHoverMessage: {
-              value: error.message,
-            },
-          },
-        },
-      ]);
+      const range = new this.monaco.Range(error.startLineNumber, error.startColumn, error.endLineNumber, error.endColumn);
+      this.editor.deltaDecorations([], [{
+        range,
+        options: this._getErrorDecorationOptions(error),
+      }]);
     });
+  }
+
+  _getErrorDecorationOptions(error) {
+    return {
+      isWholeLine: false,
+      glyphMarginClassName: 'error-glyph',
+      glyphMarginHoverMessage: { value: error.message },
+    };
   }
 }
 

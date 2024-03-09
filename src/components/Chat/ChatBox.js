@@ -1,62 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Message from './Message';
 import './ChatBox.css';
 
 const ChatBox = ({ onMessageSent, messages }) => {
   const [currentInput, setCurrentInput] = useState('');
 
-  const handleInputChange = (e) => {
-    setCurrentInput(e.target.value);
-  };
+  const isInputEmpty = useCallback(() => currentInput.trim() === '', [currentInput]);
 
-  const handleSendMessage = () => {
-    if (currentInput.trim() === '') {
-      return;
-    }
+  const handleInputChange = (event) => setCurrentInput(event.target.value);
+
+  const sendMessage = useCallback(() => {
+    if (isInputEmpty()) return;
     onMessageSent(currentInput);
     setCurrentInput('');
-  };
+  }, [currentInput, onMessageSent, isInputEmpty]);
 
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        handleSendMessage();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [currentInput]);
-
-
-  const handleCodeCopy = (code) => {
+  const handleCodeCopy = useCallback((code) => {
     navigator.clipboard.writeText(code);
-  };
-
+  }, []);
 
   return (
     <div className="chat-box">
       <div className="messages">
         {messages.map((message, index) => (
           <Message
-            key={index}
+            key={`${message.id}-${index}`} // Ideally, use a unique ID instead of index
             text={message.text}
             type={message.type}
             onCodeCopy={handleCodeCopy}
           />
         ))}
       </div>
-      <div className="input-area">
+      <form className="input-area" onSubmit={(e) => e.preventDefault()}>
         <input
           type="text"
           value={currentInput}
           onChange={handleInputChange}
           placeholder="Type a message..."
         />
-        <button onClick={handleSendMessage}>Send</button>
-      </div>
+        <button type="submit" onClick={sendMessage}>Send</button>
+      </form>
     </div>
   );
 };

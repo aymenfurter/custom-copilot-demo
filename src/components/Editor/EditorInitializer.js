@@ -1,35 +1,43 @@
 class EditorInitializer {
-  constructor(monaco, editorRef, theme, savedContent) {
-    this.monaco = monaco;
-    this.editorRef = editorRef;
-    this.theme = theme;
-    this.savedContent = savedContent;
+  constructor(monacoInstance, editorContainer, editorTheme, initialContent) {
+    this.monaco = monacoInstance;
+    this.editorContainer = editorContainer;
+    this.editorTheme = editorTheme;
+    this.initialContent = initialContent;
   }
 
   initialize() {
-    const editor = this.monaco.editor.create(this.editorRef, {
+    const editor = this._createEditor();
+    this._configureEditor(editor);
+    this._applyTheme();
+
+    return editor;
+  }
+
+  _createEditor() {
+    return this.monaco.editor.create(this.editorContainer, {
       automaticLayout: true,
       fontSize: 16,
       language: 'xml',
-      value: this.savedContent,
+      value: this.initialContent,
       minimap: { enabled: true },
     });
+  }
 
-    editor.addCommand(
-      monaco.KeyMod.Alt | monaco.KeyCode.Space,
-      () => {
-        editor.trigger('', 'editor.action.triggerSuggest', '');
-      },
-      'editorTextFocus && !editorHasSelection && ' +
-      '!editorHasMultipleSelections && !editorTabMovesFocus && ' +
-      '!hasQuickSuggest'
-    );
+  _configureEditor(editor) {
+    const triggerSuggestCommand = this.monaco.KeyMod.Alt | this.monaco.KeyCode.Space;
+    const contextCondition = 'editorTextFocus && !editorHasSelection && ' +
+                             '!editorHasMultipleSelections && !editorTabMovesFocus && ' +
+                             '!hasQuickSuggest';
     
+    editor.addCommand(triggerSuggestCommand, () => {
+      editor.trigger('', 'editor.action.triggerSuggest', '');
+    }, contextCondition);
+  }
 
-    this.monaco.editor.defineTheme('customTheme', this.theme);
+  _applyTheme() {
+    this.monaco.editor.defineTheme('customTheme', this.editorTheme);
     this.monaco.editor.setTheme('customTheme');
-
-    return editor;
   }
 }
 

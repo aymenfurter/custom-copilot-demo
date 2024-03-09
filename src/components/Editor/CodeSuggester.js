@@ -6,79 +6,82 @@ class CodeSuggester {
     this.editor = editor;
     this.apiKey = apiKey;
     this.onSuggestionAccepted = onSuggestionAccepted;
-    this.suggestionDelay = 500; 
+    this.suggestionDelay = 500; // Consider making this configurable if not already
   }
 
   async provideCompletionItems(model, position) {
-    const currentLine = model.getLineContent(position.lineNumber);
-    const currentLineUntrimmed = currentLine.substr(0, position.column - 1);
-    const textUntilPosition = model.getValueInRange({
+    const textUntilPosition = this.getTextUntilPosition(model, position);
+
+    if (textUntilPosition.length < 3) return { suggestions: [] };
+
+    const suggestion = await this.generateContextAwareCodeSuggestion(
+      textUntilPosition, 
+      model.getValue(), 
+      position
+    );
+
+    if (!suggestion) return { suggestions: [] };
+
+    return this.buildCompletionSuggestion(suggestion, position);
+  }
+
+  getTextUntilPosition(model, position) {
+    return model.getValueInRange({
       startLineNumber: position.lineNumber,
       startColumn: 1,
       endLineNumber: position.lineNumber,
       endColumn: position.column,
     });
+  }
 
-    if (textUntilPosition.length >= 3) {
-      const suggestion = await this.generateContextAwareCodeSuggestion(textUntilPosition, model.getValue(), position);
-
-      if (suggestion) {
-        return {
-          suggestions: [
-            {
-              label: suggestion,
-              kind: monaco.languages.CompletionItemKind.Snippet,
-              insertText: suggestion,
-              range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
-            },
-          ],
-        };
-      }
-    }
-
-    return { suggestions: [] };
+  buildCompletionSuggestion(suggestion, position) {
+    return {
+      suggestions: [{
+        label: suggestion,
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertText: suggestion,
+        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+      }],
+    };
   }
 
   async generateContextAwareCodeSuggestion(prompt, context, position) {
     const model = this.editor.getModel();
+    if (!model) return null;
 
-    if (model) {
-      const surroundingCode = this.getSurroundingCode(position);
-      const previousLine = model.getLineContent(position.lineNumber - 1);
-      const nextLine = model.getLineContent(position.lineNumber + 1);
+    const surroundingCode = this.getSurroundingCode(position);
+    const previousLine = model.getLineContent(position.lineNumber - 1);
+    const nextLine = model.getLineContent(position.lineNumber + 1);
 
-      const enhancedPrompt = `
-        Generate code suggestion for the following prompt in the context of the provided code snippet:
+    const enhancedPrompt = this.formatPrompt(prompt, context, surroundingCode, previousLine, nextLine);
 
-        Language: XML (Azure API Management policy code)
+    return generateCodeSuggestion(enhancedPrompt, context, this.apiKey);
+  }
 
-        Prompt: ${prompt}
+  formatPrompt(prompt, context, surroundingCode, previousLine, nextLine) {
+    return `
+      Generate code suggestion for the following prompt in the context of the provided code snippet:
 
-        Context:
-        ${context}
+      Language: XML (Azure API Management policy code)
 
-        Surrounding Code:
-        ${surroundingCode}
+      Prompt: ${prompt}
 
-        Previous Line:
-        ${previousLine}
+      Context: ${context}
 
-        Next Line:
-        ${nextLine}
+      Surrounding Code: ${surroundingCode}
 
-        Considerations:
-        - Only reply with the code snippet, no comments, no explanations.
-        - Only generate code that can be inserted as-is at the current position. Don't generate any surrounding code.
-        - Ensure the generated code is syntactically correct and fits well within the existing code structure.
-        - Use appropriate variable names, function names, and coding conventions based on the surrounding code.
-        - Consider the context and purpose of the code snippet to provide meaningful suggestions.
-        - If the prompt is ambiguous or lacks sufficient context, provide a best-effort suggestion or indicate that more information is needed.
-      `;
+      Previous Line: ${previousLine}
 
-      return generateCodeSuggestion(enhancedPrompt, context, this.apiKey);
-    }
+      Next Line: ${nextLine}
 
-    return null;
+      Considerations:
+      - Only reply with the code snippet, no comments, no explanations.
+      - Only generate code that can be inserted as-is at the current position. Don't generate any surrounding code.
+      - Ensure the generated code is syntactically correct and fits well within the existing code structure.
+      - Use appropriate variable names, function names, and coding conventions based on the surrounding code.
+      - Consider the context and purpose of the code snippet to provide meaningful suggestions.
+      - If the prompt is ambiguous or lacks sufficient context, provide a best-effort suggestion or indicate that more information is needed.
+    `;
   }
 
   getSurroundingCode(position) {
@@ -96,32 +99,28 @@ class CodeSuggester {
 
   register() {
     this.completionItemProvider = monaco.languages.registerCompletionItemProvider('xml', {
-      provideCompletionItems: async (model, position) => {
-        const suggestion = await this.provideCompletionItems(model, position);
-        return suggestion;
-      },
+      provideCompletionItems: (model, position) => this.provideCompletionItems(model, position),
     });
 
-    this.editor.onDidChangeCursorSelection((event) => {
+    this.editor.onDidChangeCursorSelection(({ selection }) => {
       const model = this.editor.getModel();
-      const position = event.selection.getPosition();
+      const position = selection.getPosition();
       const word = model.getWordAtPosition(position);
+      if (!word) return;
 
-      if (word) {
-        const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
-        const suggestion = model.getValueInRange(range);
+      const suggestion = model.getValueInRange({
+        startLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endLineNumber: position.lineNumber,
+        endColumn: word.endColumn,
+      });
 
-        if (suggestion) {
-          this.onSuggestionAccepted(suggestion);
-        }
-      }
+      if (suggestion) this.onSuggestionAccepted(suggestion);
     });
   }
 
   dispose() {
-    if (this.completionItemProvider) {
-      this.completionItemProvider.dispose();
-    }
+    if (this.completionItemProvider) this.completionItemProvider.dispose();
   }
 }
 

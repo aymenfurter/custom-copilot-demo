@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as monaco from 'monaco-editor';
-import MonacoXMLEditor from './Editor/MonacoXMLEditor';
 import ChatBox from './Chat/ChatBox';
 import EditorInitializer from './Editor/EditorInitializer';
 import XmlValidator from './Editor/XmlValidator';
@@ -12,45 +11,38 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const editorRef = useRef(null);
-  const [editor, setEditor] = useState(null);
 
+  // Initialize and set up the editor
   useEffect(() => {
-    if (editorRef.current) {
-      const savedContent = localStorage.getItem('editorContent') || `<policies>
-    <inbound>
-    </inbound>
-    <backend>
-    </backend>
-    <outbound>
-    </outbound>
-    <on-error>
-    </on-error>
-</policies>`;
+    if (!editorRef.current) return;
 
-      const initializer = new EditorInitializer(monaco, editorRef.current, MonacoTheme, savedContent);
-      const editorInstance = initializer.initialize();
-      setEditor(editorInstance);
+    const defaultContent = `<policies>
+      <inbound></inbound>
+      <backend></backend>
+      <outbound></outbound>
+      <on-error></on-error>
+    </policies>`;
+    const savedContent = localStorage.getItem('editorContent') || defaultContent;
 
+    const initializer = new EditorInitializer(monaco, editorRef.current, MonacoTheme, savedContent);
+    const editorInstance = initializer.initialize();
+
+    const handleEditorChange = () => {
       const validator = new XmlValidator(editorInstance, monaco);
-      editorInstance.onDidChangeModelContent(() => {
-        validator.validate();
-      });
+      validator.validate();
+      localStorage.setItem('editorContent', editorInstance.getValue());
+    };
 
-      editorInstance.onDidChangeModelContent(() => {
-        validator.validate();
-        const currentContent = editorInstance.getValue();
-        localStorage.setItem('editorContent', currentContent);
-      });
+    editorInstance.onDidChangeModelContent(handleEditorChange);
 
-      const codeSuggester = new CodeSuggester(editorInstance, apiKey, handleSuggestionAccepted);
-      codeSuggester.register();
+    const codeSuggester = new CodeSuggester(editorInstance, apiKey, () => {});
+    codeSuggester.register();
 
-      return () => {
-        editorInstance.dispose();
-        codeSuggester.dispose();
-      };
-    }
-  }, []);
+    return () => {
+      editorInstance.dispose();
+      codeSuggester.dispose();
+    };
+  }, [apiKey]); 
 
   const handleApiKeyChange = (event) => {
     setApiKey(event.target.value);
@@ -62,9 +54,8 @@ const App = () => {
   };
 
   const handleMessageSent = async (message) => {
-    setMessages([...messages, { type: 'user', text: message }]);
+    setMessages((prevMessages) => [...prevMessages, { type: 'user', text: message }]);
     setIsStreaming(true);
-
     const currentModel = monaco.editor.getModels()[0];
     const currentCode = currentModel.getValue();
 
@@ -87,7 +78,7 @@ const App = () => {
             content: `Here's the current code:\n\n${currentCode}\n\nUser message: ${message}`,
           },
         ],
-        max_tokens: 350,
+        max_tokens: 500,
         n: 1,
         stream: true,
         temperature: 0.7,
@@ -129,11 +120,8 @@ const App = () => {
       }
     }
 
-    setIsStreaming(false);
-  };
 
-  const handleSuggestionAccepted = (suggestion) => {
-    // Placeholder function for handling accepted suggestions
+    setIsStreaming(false);
   };
 
   return (
@@ -147,15 +135,12 @@ const App = () => {
             placeholder="Enter your OpenAI API key"
             className="api-key-input"
           />
-          <button type="submit" className="api-key-submit">
-            Save
-          </button>
+          <button type="submit" className="api-key-submit">Save</button>
         </form>
       </div>
       <div className="editor-chat-container">
         <div className="editor">
           <div ref={editorRef} className="monaco-editor" style={{ height: '100%', width: '100%' }} />
-          {editor && <MonacoXMLEditor editor={editor} />}
         </div>
         <div className="chat">
           <ChatBox onMessageSent={handleMessageSent} messages={messages} isStreaming={isStreaming} />
