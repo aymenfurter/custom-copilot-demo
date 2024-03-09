@@ -99,46 +99,59 @@ const App = () => {
     let botResponse = '';
 
     while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
+      const { value, done } = await reader.read();
+      if (done) break;
 
-    const chunk = decoder.decode(value);
-    const lines = chunk.split('\n');
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
 
-    for (const line of lines) {
-      if (line.startsWith('data:')) {
-        const data = JSON.parse(line.slice(5));
-        if (data.choices && data.choices.length > 0) {
-          const delta = data.choices[0].delta;
-          if (delta.content) {
-            botResponse += delta.content;
-            setMessages((prevMessages) => {
-              const lastMessage = prevMessages[prevMessages.length - 1];
-              if (lastMessage.type === 'bot') {
-                return [
-                  ...prevMessages.slice(0, -1),
-                  { type: 'bot', text: lastMessage.text + delta.content },
-                ];
-              } else {
-                return [...prevMessages, { type: 'bot', text: delta.content }];
-              }
-            });
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const data = JSON.parse(line.slice(5));
+          if (data.choices && data.choices.length > 0) {
+            const delta = data.choices[0].delta;
+            if (delta.content) {
+              botResponse += delta.content;
+              setMessages((prevMessages) => {
+                const lastMessage = prevMessages[prevMessages.length - 1];
+                if (lastMessage.type === 'bot') {
+                  return [
+                    ...prevMessages.slice(0, -1),
+                    { type: 'bot', text: lastMessage.text + delta.content },
+                  ];
+                } else {
+                  return [...prevMessages, { type: 'bot', text: delta.content }];
+                }
+              });
+            }
           }
         }
       }
     }
-  }
 
-  setIsStreaming(false);
-};
-
-  const handleSuggestionAccepted = (suggestion) => {
+    setIsStreaming(false);
   };
 
+  const handleSuggestionAccepted = (suggestion) => {
+    // Placeholder function for handling accepted suggestions
+  };
 
-    return (
+  return (
     <div className="app">
-      {/* ... */}
+      <div className="api-key-container">
+        <form onSubmit={handleApiKeySubmit}>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={handleApiKeyChange}
+            placeholder="Enter your OpenAI API key"
+            className="api-key-input"
+          />
+          <button type="submit" className="api-key-submit">
+            Save
+          </button>
+        </form>
+      </div>
       <div className="editor-chat-container">
         <div className="editor">
           <div ref={editorRef} className="monaco-editor" style={{ height: '100%', width: '100%' }} />
