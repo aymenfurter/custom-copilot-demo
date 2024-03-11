@@ -1,47 +1,31 @@
-# Copilot for Monaco-based custom IDEs (custom-copilot-demo)
 
-This repository contains an implementation of an AI-assisted code editor that provides intelligent code suggestions, XML validation, error highlighting, theme customization, and chat integration. The editor leverages the Monaco editor and the OpenAI API to enhance the coding experience.
 
-## Architecture Overview
+<div id="top"></div>
 
-The architecture of the AI-assisted code editor can be visualized using the following Mermaid diagram:
+<br />
+<div align="center">
+  <img src="https://raw.githubusercontent.com/aymenfurter/custom-copilot-demo/main/demo.png"> 
 
-```mermaid
-graph LR
-  Editor((Editor))
-  
-  Editor --> Commands
-  Editor --> Validation
-  Editor --> Customization
-  Editor --> CodeAssistance
-  Editor --> ChatFeatures
-  
-  Commands --> SuggestCommand(Suggest Command)
-  SuggestCommand --> TriggerSuggest(Trigger Suggest)
-  
-  Validation --> ModelValidation(Model Validation)
-  ModelValidation --> XmlValidation(XML Validation)
-  ModelValidation --> ErrorHighlighting(Error Highlighting)
-  
-  Customization --> ThemeCustomization(Theme Customization)
-  ThemeCustomization --> MonacoTheme(Monaco Theme)
-  
-  CodeAssistance --> CodeSuggestions(Code Suggestions)
-  CodeSuggestions --> ContextAwareCompletion(Context-Aware Completion)
-  CodeSuggestions --> OpenAIAPI(OpenAI API)
-  
-  ChatFeatures --> ChatIntegration(Chat Integration)
-  ChatIntegration --> MessageHandling(Message Handling)
-  ChatIntegration --> ErrorDetection(Error Detection)
-  ChatIntegration --> FixProposals(Fix Proposals)
-``` 
+  <h1 align="center">Custom Copilot for Monaco (Sample Code)</h1>
+  <p align="center">
+    This repository contains a sample implementation of an AI-assisted code editor that provides intelligent code suggestions, XML validation, error highlighting, theme customization, and chat integration. The editor leverages the Monaco editor and the OpenAI API to enhance the coding experience. 
+    <br />
+    <br />
+    👉 <a href="https://aymenfurter.github.io/custom-copilot-demo/">Live Demo</a>
+    ·
+    🐞 <a href="https://github.com/aymenfurter/custom-copilot-demo/issues">Report Bug</a>
+    ·
+    💡 <a href="https://github.com/aymenfurter/custom-copilot-demo/issues">Request Feature</a>
+  </p>
+</div>
+<br />
 
 
 ## Key Features
 
-### 1. Suggest Command
+### 1. Trigger Code Suggestions (Ctrl + Space)
 
-The `SuggestCommand` feature allows users to trigger code suggestions using a keyboard shortcut (Alt + Space). It is implemented in the `EditorInitializer` class ([src/components/Editor/EditorInitializer.js](https://github.com/aymenfurter/custom-copilot-demo/blob/main/src/components/Editor/EditorInitializer.js#L22-L29)).
+Users can trigger code suggestions using a keyboard shortcut (Alt + Space on Mac and Ctrl Space on Windows). This is implemented in the `EditorInitializer` class ([src/components/Editor/EditorInitializer.js](https://github.com/aymenfurter/custom-copilot-demo/blob/main/src/components/Editor/EditorInitializer.js#L22-L29)).
 
 ``` javascript
 const triggerSuggestCommand = this.monaco.KeyMod.Alt | this.monaco.KeyCode.Space;
@@ -73,7 +57,7 @@ validate() {
 
 ### 3. Theme Customization
 
-The `ThemeCustomization` feature applies a custom theme to the Monaco editor. The custom theme is defined in the `MonacoTheme` object ([src/components/Editor/MonacoTheme.js](src/components/Editor/MonacoTheme.js)).
+`ThemeCustomization` applies a custom theme to the Monaco editor. The custom theme is defined in the `MonacoTheme` object ([src/components/Editor/MonacoTheme.js](src/components/Editor/MonacoTheme.js)).
 
 ``` javascript
 _applyTheme() {
@@ -106,7 +90,7 @@ async provideCompletionItems(model, position) {
 
 ### 5. Chat Integration
 
-The `ChatIntegration` feature enables communication and error handling through the chat interface. It is implemented in the `ChatBox` component ([src/components/Chat/ChatBox.js](src/components/Chat/ChatBox.js)).
+The ChatIntegration feature enhances your coding experience by allowing you to ask questions about your code and utilize the chat interface to diagnose and fix syntax errors. It is implemented in the `ChatBox` component ([src/components/Chat/ChatBox.js](src/components/Chat/ChatBox.js)).
 
 ``` javascript
 const handleMessageSent = async (message) => {
@@ -148,9 +132,11 @@ const handleMessageSent = async (message) => {
 ``` 
 
 ## Usage
-
+> [!NOTE]
+> This is strictly for demonstration and educational purposes, and is not intended or appropriate for production use.
 To use the AI-assisted code editor:
 
 - Clone the repository: `git clone https://github.com/aymenfurter/custom-copilot-demo.git`
 - Install the dependencies: `npm install`
-- Set up your OpenAI API key in the App
+- Run it: : `npm start`
+- Open the browser and set up your OpenAI API key in the App
