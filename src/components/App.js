@@ -12,6 +12,7 @@ const App = () => {
   const [messages, setMessages] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [hasErrors, setHasErrors] = useState(false);
+  const [apiUrl, setApiUrl] = useState(localStorage.getItem('apiUrl') || 'https://api.openai.com/v1/chat/completions');
   const editorRef = useRef(null);
 
   const handleClearChat = () => {
@@ -41,7 +42,7 @@ const App = () => {
 
     editorInstance.onDidChangeModelContent(handleEditorChange);
 
-    const codeSuggester = new CodeSuggester(editorInstance, apiKey, () => {});
+    const codeSuggester = new CodeSuggester(editorInstance, apiKey, apiUrl, () => {});
     codeSuggester.register();
 
     const syntaxHighlighter = new SyntaxHighlighter(monaco, editorInstance);
@@ -61,6 +62,7 @@ const App = () => {
   const handleApiKeySubmit = (event) => {
     event.preventDefault();
     localStorage.setItem('apiKey', apiKey);
+    localStorage.setItem('apiUrl', apiUrl); 
   };
 
   const handleMessageSent = async (message) => {
@@ -70,12 +72,19 @@ const App = () => {
     const currentModel = monaco.editor.getModels()[0];
     const currentCode = currentModel.getValue();
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    let headers = {
+      'Content-Type': 'application/json',
+    };
+  
+    if (apiUrl !== 'https://api.openai.com/v1/chat/completions') {
+      headers['api-key'] = apiKey;
+    } else {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: headers,
       body: JSON.stringify({
         model: 'gpt-4',
         messages: [
@@ -137,6 +146,15 @@ const App = () => {
   return (
     <div className="app">
       <div className="api-key-container">
+        <form onSubmit={handleApiKeySubmit}> 
+          <input
+            type="text"
+            value={apiUrl}
+            onChange={(e) => setApiUrl(e.target.value)}
+            placeholder="Enter the OpenAI API URL"
+            className="api-url-input"
+          />
+        </form>
         <form onSubmit={handleApiKeySubmit}>
           <input
             type="password"

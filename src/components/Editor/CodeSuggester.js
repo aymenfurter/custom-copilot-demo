@@ -2,9 +2,10 @@ import * as monaco from 'monaco-editor';
 import { generateCodeSuggestion } from '../../api/openai';
 
 class CodeSuggester {
-  constructor(editor, apiKey, onSuggestionAccepted) {
+  constructor(editor, apiKey, apiUrl, onSuggestionAccepted) {
     this.editor = editor;
     this.apiKey = apiKey;
+    this.apiUrl = apiUrl;
     this.onSuggestionAccepted = onSuggestionAccepted;
     this.suggestionDelay = 500; // Consider making this configurable if not already
   }
@@ -55,7 +56,7 @@ class CodeSuggester {
 
     const enhancedPrompt = this.formatPrompt(prompt, context, surroundingCode, previousLine, nextLine);
 
-    return generateCodeSuggestion(enhancedPrompt, context, this.apiKey);
+    return generateCodeSuggestion(enhancedPrompt, context, this.apiKey, this.apiUrl);
   }
 
   formatPrompt(prompt, context, surroundingCode, previousLine, nextLine) {
