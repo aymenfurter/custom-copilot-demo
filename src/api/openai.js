@@ -1,9 +1,16 @@
-export const generateCodeSuggestion = async (prompt, context, apiKey) => {
-  const apiURL = 'https://api.openai.com/v1/chat/completions';
+export const generateCodeSuggestion = async (prompt, context, apiKey, apiUrl) => {
+  const apiURL = apiUrl;
   const requestHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${apiKey}`,
-  };
+      'Content-Type': 'application/json',
+    };
+  
+
+  if (apiUrl !== 'https://api.openai.com/v1/chat/completions') {
+    requestHeaders['api-key'] = apiKey;
+  } else {
+    requestHeaders['Authorization'] = `Bearer ${apiKey}`;
+  }
+
   const requestBody = createRequestBody(prompt, context);
 
   try {

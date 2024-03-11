@@ -52,10 +52,13 @@ body, html {
 
 .api-key-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   margin-bottom: 10px;
+  gap: 20px;
+  justify-content: space-around;
+  flex-wrap: wrap;
 }
+
 
 .api-key-container h2 {
   font-size: 24px;
@@ -67,7 +70,7 @@ body, html {
   align-items: center;
 }
 
-.api-key-input {
+.api-key-input, .api-url-input {
   padding: 5px;
   font-size: 14px;
   border: 1px solid #ccc;
@@ -115,3 +118,5 @@ body, html {
   cursor: pointer;
   margin-right: 10px;
 }
+
+
