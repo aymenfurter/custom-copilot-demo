@@ -37,7 +37,7 @@ class SyntaxHighlighter {
             base: 'vs-dark', // can also be vs-dark or hc-black
             inherit: true, // inherits the base theme's styles
             rules: [
-                { token: 'tag', foreground: '0000ff' }, // Blue for XML tags
+                { token: 'tag', foreground: '436ea3' }, // Blue for XML tags
                 { token: 'attribute', foreground: 'ff0000'}, // Red for attributes
                 { token: 'string', foreground: '008000'}, // Green for attribute values
                 { token: 'comment', foreground: 'aaaaaa', fontStyle: 'italic'}, // Grey and italic for comments
