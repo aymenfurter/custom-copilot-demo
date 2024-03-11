@@ -5,6 +5,7 @@ import EditorInitializer from './Editor/EditorInitializer';
 import XmlValidator from './Editor/XmlValidator';
 import MonacoTheme from './Editor/MonacoTheme';
 import CodeSuggester from './Editor/CodeSuggester';
+import SyntaxHighlighter from './Editor/SyntaxHighligher';
 
 const App = () => {
   const [apiKey, setApiKey] = useState(localStorage.getItem('apiKey') || '');
@@ -43,9 +44,13 @@ const App = () => {
     const codeSuggester = new CodeSuggester(editorInstance, apiKey, () => {});
     codeSuggester.register();
 
+    const syntaxHighlighter = new SyntaxHighlighter(monaco, editorInstance);
+    syntaxHighlighter.initialize();
+
     return () => {
       editorInstance.dispose();
       codeSuggester.dispose();
+      syntaxHighlighter.dispose();
     };
   }, [apiKey]);
 
