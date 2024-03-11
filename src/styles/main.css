@@ -17,7 +17,7 @@ body, html {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background-color: #252526;
+  background-color: #1e1e1e;
 }
 
 .editor-chat-container {
@@ -28,11 +28,13 @@ body, html {
 }
 
 .editor {
+  border: 1px solid #454545;
   flex: 1;
   margin-right: 20px;
 }
 
 .chat {
+  border-bottom: 1px solid #454545;
   flex: 0 0 490px; 
   overflow: hidden;
 }
@@ -119,4 +121,6 @@ body, html {
   margin-right: 10px;
 }
 
-
+.suggest-widget {
+  width: 800px !important; 
+}
