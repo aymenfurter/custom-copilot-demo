@@ -51,7 +51,6 @@ const App = () => {
     return () => {
       editorInstance.dispose();
       codeSuggester.dispose();
-      syntaxHighlighter.dispose();
     };
   }, [apiKey]);
 
