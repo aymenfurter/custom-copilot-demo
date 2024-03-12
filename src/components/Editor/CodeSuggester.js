@@ -82,6 +82,7 @@ class CodeSuggester {
       - Use appropriate variable names, function names, and coding conventions based on the surrounding code.
       - Consider the context and purpose of the code snippet to provide meaningful suggestions.
       - If the prompt is ambiguous or lacks sufficient context, provide a best-effort suggestion or indicate that more information is needed.
+      - If the text under the cursor corresponds to the beginning of your suggestion, please provide only the remaining part of the suggestion.
       
       API Management policy (XML) may contain the following policies:
         - authentication-basic - [username, password]
