@@ -1,5 +1,6 @@
 import policySnippets from './PolicySnippets';
 import PositionCalculator from './PositionCalculator';
+import { validate } from '../../../node_modules/fast-xml-parser/src/validator.js';
 
 class XmlValidator {
   constructor(editor, monaco) {
@@ -11,6 +12,7 @@ class XmlValidator {
   validate() {
     const xmlDoc = this._parseXml();
     const errors = [
+      ...this._validateXml(this.editor.getValue()),
       ...this._validatePolicyAttributes(xmlDoc),
     ];
 
@@ -22,6 +24,24 @@ class XmlValidator {
   _parseXml() {
     const xmlString = this.editor.getValue();
     return new DOMParser().parseFromString(xmlString, 'text/xml');
+  }
+
+  _validateXml(xmlDoc) {
+    const errors = [];
+    const validationResult = validate(xmlDoc);
+
+    if (validationResult !== true) {
+      errors.push({
+        severity: this.monaco.MarkerSeverity.Error,
+        message: validationResult.err.msg,
+        startLineNumber: validationResult.err.line,
+        startColumn: validationResult.err.col,
+        endLineNumber: validationResult.err.line,
+        endColumn: validationResult.err.col + 1,
+      });
+    }
+
+    return errors;
   }
 
   _validatePolicyAttributes(xmlDoc) {
@@ -59,6 +79,10 @@ class XmlValidator {
 
   _setModelMarkers(errors) {
     this.monaco.editor.setModelMarkers(this.editor.getModel(), 'xml', errors);
+  }
+
+  _updateErrorDecorators(errors) {
+    this.editor.deltaDecorations([], errors.map(this._createErrorDecorator));
   }
 }
 
