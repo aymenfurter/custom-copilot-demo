@@ -44,16 +44,23 @@ The `ModelValidation` feature performs XML validation on the editor content and 
 
 ``` javascript
 validate() {
-  const xmlDoc = this._parseXml();
-  const errors = [
-    ...this._validatePolicyAttributes(xmlDoc),
-  ];
+    const xmlDoc = this._parseXml();
+    const errors = [
+      ...this._validateXml(this.editor.getValue()),
+      ...this._validatePolicyAttributes(xmlDoc),
+    ];
 
-  this._setModelMarkers(errors);
+    this._setModelMarkers(errors);
 
-  return errors;
-}
+    return errors;
+  }
 ``` 
+
+Model validation is implement in two functions:
+* _validateXml validates a generic xml, uisng the [fast-xml-parser](https://www.npmjs.com/package/fast-xml-parser) library
+  (limitations of this library are that it returns only the single error and it doesn't return the length of the wrong token)
+* _validatePolicyAttributes validates against the API Management Policy attributes
+At the moment, there is no a DTD or XSD for API Management Policies xml files.
 
 ### 3. Theme Customization
 
@@ -130,6 +137,60 @@ const handleMessageSent = async (message) => {
   // ...
 };
 ``` 
+
+
+### 6. Syntax Highlighting
+
+The Syntax Highlighting feature configures the Project Monaco editor for the API Management policies files. It is implemented in the `SyntaxHighlighter` component ([src/components/Editor/SyntaxHighlighter.js](src/components/Editor/SyntaxHighlighter.js)).
+
+``` javascript
+    initialize() {
+        monaco.languages.register({ id: 'apimPolicies' });
+
+        monaco.languages.setMonarchTokensProvider('apimPolicies', {
+            tokenizer: {
+                root: [
+                    // Match XML Tags
+                    [/<\/?[a-zA-Z_-]+>/, "tag"],
+
+                    // Match XML Attributes
+                    [/([a-zA-Z0-9_-]+)=/, "attribute"],
+
+                    // Match strings (attribute values)
+                    [/\"[^\"]*\"/, "string"],
+
+                    // Specific highlighting for commonly used policy sections
+                    [/<inbound>/, "custom-inbound"],
+                    [/<backend>/, "custom-backend"],
+                    [/<outbound>/, "custom-outbound"],
+                    [/<on-error>/, "custom-onerror"],
+
+                    // Comments
+                    [/<!--[\s\S]*?-->/, "comment"]
+                ]
+            }
+        });
+
+        monaco.editor.defineTheme('apimPolicyTheme', {
+            base: 'vs-dark', // can also be vs-dark or hc-black
+            inherit: true, // inherits the base theme's styles
+            rules: [
+                { token: 'tag', foreground: '436ea3' }, // Blue for XML tags
+                { token: 'attribute', foreground: 'ff0000'}, // Red for attributes
+                { token: 'string', foreground: '008000'}, // Green for attribute values
+                { token: 'comment', foreground: 'aaaaaa', fontStyle: 'italic'}, // Grey and italic for comments
+                // Custom colors for specific policy sections
+                { token: 'custom-inbound', foreground: 'FF4500'}, // Orangered for <inbound>
+                { token: 'custom-backend', foreground: '2E8B57'}, // Seagreen for <backend>
+                { token: 'custom-outbound', foreground: '1E90FF'}, // Dodgerblue for <outbound>
+                { token: 'custom-onerror', foreground: 'DAA520'}, // Goldenrod for <on-error>
+            ]
+        });
+
+        monaco.editor.setTheme('apimPolicyTheme');
+    }
+``` 
+
 
 ## Usage
 > [!NOTE]
